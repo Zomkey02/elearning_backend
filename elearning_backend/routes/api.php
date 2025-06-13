@@ -16,11 +16,20 @@ use App\Http\Controllers\Auth\LoginController;
 
 
 
+Route::get('test', function () {
+    return response()->json(['message' => 'API is working']);
+});
 
 
+Route::post('/register', RegisterController::class);
 
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/login', LoginController::class);
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+});
+
