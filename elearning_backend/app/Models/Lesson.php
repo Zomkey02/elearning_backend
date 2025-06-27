@@ -21,10 +21,16 @@ class Lesson extends Model
         'author_id',
         'status',
         'layout_type',
+        'course_id',
     ];
 
-    public function author()
-    {
+    public function author() {
         return $this->belongsTo(User::class, 'author_id');
     }
+
+    public function course() {
+        return $this->belongsTo(Course::class);
+    }
+        
+    
 }
