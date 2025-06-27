@@ -16,8 +16,8 @@ class CourseController extends Controller
 
     public function store (Request $request)
     {
-        if(!Gate::allows('manage-courses')) {
-            return response()->json(['message' => 'Not authorized'], 200);
+        if(!Gate::allows('manage-all')) {
+            return response()->json(['message' => 'Not authorized'], 403);
         }
 
         // Validation and creation logic
@@ -36,6 +36,7 @@ class CourseController extends Controller
         $validated['author_id'] = $user->id;
 
         $course = Course::create($validated);
+        
 
         return response()->json(['course' => $course], status: 201);
     }
@@ -48,5 +49,10 @@ class CourseController extends Controller
             return response()->json(['message' => 'Course not found'], status: 404);
         }
         return response()->json(['lesson' => $course], status: 200);
+    }
+
+    public function update(Request $request, $id)
+    {
+        
     }
 }
