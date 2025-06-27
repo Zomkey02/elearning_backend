@@ -24,6 +24,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -49,8 +50,16 @@ class User extends Authenticatable
         ];
     }
 
-    /* Get the lessons authored by the user. */
+    /* Get the lessons authored by the writer. */
     public function lessons() {
         return $this->hasMany(Lesson::class, 'author_id');
+    }
+
+    public function isAdmin() {
+        return $this->role ==='admin';
+    }
+
+    public function isWriter() {
+        return $this->role ==='writer';
     }
 }

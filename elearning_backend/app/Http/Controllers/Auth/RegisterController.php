@@ -25,6 +25,7 @@ class RegisterController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'user', // default role set to user
         ]);
 
         /* Auth::login($user);
