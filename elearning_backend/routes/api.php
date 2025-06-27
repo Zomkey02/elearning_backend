@@ -29,8 +29,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/course', [CourseController::class, 'store']);
 
-    /* Route::post('/lesson', [LessonController::class, 'store']);
-    Route::get('/lesson/{lessonId}', [LessonController::class, 'show']);
- */
+    Route::prefix('/course/{courseId}')->group(function () {
+        Route::get('/lessons', [LessonController::class, 'index']);
+        Route::post('/lesson', [LessonController::class, 'store']);
+        Route::get('/lesson/{lessonId}', [LessonController::class, 'show']);
+    });
 
 });
