@@ -8,16 +8,13 @@ use Illuminate\Support\Facades\Gate;
 
 class LessonController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /*show all lessons in a course*/
     public function index(Request $request)
     {
         $lessons = Lesson::all();
         return response()->json(['courses' => $lessons], 200);
     }
 
-    
     public function store(Request $request, $courseId)
     {
         if(!Gate::allows('manage-all')) {
@@ -47,7 +44,7 @@ class LessonController extends Controller
         return response()->json(['lesson' => $lesson], status: 201);
         
     }
-
+    /* Show specific lesson */
     public function show(Request $request, $courseId, $lessonId)
     {
         //$lesson = Lesson::find($id);
@@ -62,28 +59,15 @@ class LessonController extends Controller
         }
         
         return response()->json(['lesson' => $lesson], status: 200);
-
+        
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    /* public function edit(string $id)
-    {
-        //
-    } */
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(string $id)
     {
         //
