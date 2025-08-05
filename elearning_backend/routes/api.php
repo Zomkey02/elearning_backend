@@ -13,7 +13,7 @@ use App\Http\Controllers\LessonController;
     return response()->json(['message' => 'API is working']);
 }); */
 
-// Not signed in view
+// Public routes
 Route::post('/register', RegisterController::class);
 Route::post('/login', LoginController::class);
 
@@ -25,7 +25,7 @@ Route::prefix('/course/{courseId}')->group(function () {
     Route::get('/lesson/{lessonId}', [LessonController::class, 'show']);
 });
 
-
+// Private, logged in routes
 Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/user', function (Request $request) { return $request->user(); });
@@ -34,8 +34,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/course', [CourseController::class, 'store']);
 
-    Route::prefix('/course/{courseId}')->group(function () {
-        Route::post('/lesson', [LessonController::class, 'store']);
-    });
+    Route::post('/lesson', [LessonController::class, 'store']);
 
 });
