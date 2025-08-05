@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Auth\DeleteUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\UpdateUserProfileController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
 
@@ -26,11 +28,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/user', function (Request $request) { return $request->user(); });
     Route::post('/logout', LogoutController::class);
+    Route::post('/update', UpdateUserProfileController::class);
+    Route::delete('/delete', DeleteUserController::class);
 
     Route::controller( CourseController::class )->group ( function(){
         Route::post('/course', 'store');
         Route::post('/course/{courseId}', 'update');
         Route::delete('/course/{courseId}', 'delete');
+
 
     });
 
