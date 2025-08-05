@@ -9,10 +9,6 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
 
-/* Route::get('test', function () {
-    return response()->json(['message' => 'API is working']);
-}); */
-
 // Public routes
 Route::post('/register', RegisterController::class);
 Route::post('/login', LoginController::class);
@@ -38,8 +34,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     });
 
-    //Route::post('/course', [CourseController::class, 'store']);
-
-    Route::post('/lesson', [LessonController::class, 'store']);
+    Route::controller( LessonController::class )->group (function(){
+        Route::post('/course/{courseId}/lesson', 'store');
+        Route::post('/course/{courseId}/lesson/{lessonId}', 'update');
+        Route::delete('/course/{courseId}/lesson/{lessonId}', 'delete');
+    });
 
 });

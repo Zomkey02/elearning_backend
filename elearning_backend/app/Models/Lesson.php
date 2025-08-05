@@ -14,7 +14,7 @@ class Lesson extends Model
         'slug',
         'summary',
         'content',
-        'thumbnail_url',
+        'thumbnail',
         'duration',
         'level',
         'views',

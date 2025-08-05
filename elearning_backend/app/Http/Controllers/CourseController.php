@@ -72,13 +72,9 @@ class CourseController extends Controller
     {
         if (!Gate::allows('manage-all')) {
         return response()->json(['message' => 'Not authorized'], 403);
-    }
-
-        $course = Course::find($id);
-
-        if (!$course) {
-            return response()->json(['message' => 'Course not found'], 404);
         }
+
+        $course = Course::findOrFail($id);
 
         if ($course->thumbnail && Storage::disk('public')->exists(str_replace('storage/', '', $course->thumbnail))) 
             {Storage::disk('public')->delete(str_replace('storage/', '', $course->thumbnail));
@@ -106,6 +102,7 @@ class CourseController extends Controller
         if (!$request->hasFile('thumbnail')) {
             return null;
         }
+        
         $image = $request->file('thumbnail');
         $safeTitle = Str::slug($title);
         $extension = $image->getClientOriginalExtension();
