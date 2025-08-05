@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
@@ -21,15 +23,11 @@ class CourseController extends Controller
         }
 
         // Validation and creation logic
-        $validated = $request->validate([
-            'title'         => 'required|string|max:255',
-            'slug'          => 'required|string|max:255|unique:lessons',
-            'summary'       => 'nullable|string',
-            'description'       => 'required|string',
-            'thumbnail_url' => 'nullable|url',
-            'duration'      => 'nullable|integer|min:1',
-            'status'        => 'required|in:draft,published',
-        ]);
+        $validated = $request->validate($this->rules());
+        $thumbnailPath = $this->handleThumbnailUpload($request, $validated['title']);
+        if ($thumbnailPath) {
+            $validated['thumbnail'] = $thumbnailPath;
+        }
 
         $user = $request->user();
 
@@ -53,6 +51,66 @@ class CourseController extends Controller
 
     public function update(Request $request, $id)
     {
-        
+        if (!Gate::allows('manage-all')) {
+            return response()->json(['message' => 'Not authorized'], 403);
+        }
+
+        $course = Course::findOrFail($id);
+
+        $validated = $request->validate($this->rules($course->id));
+        $thumbnailPath = $this->handleThumbnailUpload($request, $validated['title']);
+        if ($thumbnailPath) {
+            $validated['thumbnail'] = $thumbnailPath;
+        }
+
+        $course->update($validated);
+
+        return response()->json(['message' => 'Update successful', 'course' => $course], 200);
+    }
+
+    public function delete($id)
+    {
+        if (!Gate::allows('manage-all')) {
+        return response()->json(['message' => 'Not authorized'], 403);
+    }
+
+        $course = Course::find($id);
+
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        if ($course->thumbnail && Storage::disk('public')->exists(str_replace('storage/', '', $course->thumbnail))) 
+            {Storage::disk('public')->delete(str_replace('storage/', '', $course->thumbnail));
+        }
+        $course->delete();
+
+        return response()->json(['message' => 'Course and its lessons deleted successfully'], 200);
+    }
+
+    protected function rules($courseId = null)
+    {
+        return [
+            'title'         => 'required|string|max:255',
+            'slug'          => 'required|string|max:255|unique:lessons,slug' . ($courseId ? ",$courseId" : ''),
+            'summary'       => 'nullable|string',
+            'description'   => 'required|string',
+            'thumbnail'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'duration'      => 'nullable|integer|min:1',
+            'status'        => 'required|in:draft,published',
+        ];
+    }
+
+    private function handleThumbnailUpload(Request $request, string $title): ?string
+    {
+        if (!$request->hasFile('thumbnail')) {
+            return null;
+        }
+        $image = $request->file('thumbnail');
+        $safeTitle = Str::slug($title);
+        $extension = $image->getClientOriginalExtension();
+        $filePath = $image->storeAs('courses', $safeTitle . '.' . $extension, 'public' );
+
+        return 'storage/' . $filePath;
     }
 }

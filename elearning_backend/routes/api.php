@@ -29,10 +29,16 @@ Route::prefix('/course/{courseId}')->group(function () {
 Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/user', function (Request $request) { return $request->user(); });
-    
     Route::post('/logout', LogoutController::class);
 
-    Route::post('/course', [CourseController::class, 'store']);
+    Route::controller( CourseController::class )->group ( function(){
+        Route::post('/course', 'store');
+        Route::post('/course/{courseId}', 'update');
+        Route::delete('/course/{courseId}', 'delete');
+
+    });
+
+    //Route::post('/course', [CourseController::class, 'store']);
 
     Route::post('/lesson', [LessonController::class, 'store']);
 

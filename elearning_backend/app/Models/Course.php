@@ -14,7 +14,7 @@ class Course extends Model
         'slug',
         'summary',
         'description',
-        'thumbnail_url',
+        'thumbnail',
         'duration',
         'views',
         'author_id',
@@ -23,5 +23,12 @@ class Course extends Model
 
     public function lessons() {
         return $this->hasMany(Lesson::class);
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($course) {
+            $course->lessons()->delete();
+        });
     }
 }
