@@ -33,16 +33,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::controller( CourseController::class )->group ( function(){
         Route::post('/course', 'store');
-        Route::post('/course/{courseId}', 'update');
-        Route::delete('/course/{courseId}', 'delete');
+        Route::post('/course/update/{courseId}', 'update');
+        Route::delete('/course/delete/{courseId}', 'delete');
 
 
     });
 
     Route::controller( LessonController::class )->group (function(){
         Route::post('/course/{courseId}/lesson', 'store');
-        Route::post('/course/{courseId}/lesson/{lessonId}', 'update');
-        Route::delete('/course/{courseId}/lesson/{lessonId}', 'delete');
+        Route::post('/course/{courseId}/lesson/update/{lessonId}', 'update');
+        Route::delete('/course/{courseId}/lesson/delete/{lessonId}', 'delete');
     });
 
 });

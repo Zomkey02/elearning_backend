@@ -46,7 +46,7 @@ class CourseController extends Controller
         if (!$course) {
             return response()->json(['message' => 'Course not found'], status: 404);
         }
-        return response()->json(['lesson' => $course], status: 200);
+        return response()->json(['course' => $course], status: 200);
     }
 
     public function update(Request $request, $id)
@@ -59,7 +59,13 @@ class CourseController extends Controller
 
         $validated = $request->validate($this->rules($course->id));
         $thumbnailPath = $this->handleThumbnailUpload($request, $validated['title']);
+
         if ($thumbnailPath) {
+
+            if ($course->thumbnail && Storage::disk('public')->exists(str_replace('storage/','',$course->thumbnail))) {
+                Storage::disk('public')->delete(str_replace('storage/','',$course->thumbnail));
+            }
+
             $validated['thumbnail'] = $thumbnailPath;
         }
 
@@ -87,12 +93,12 @@ class CourseController extends Controller
     protected function rules($courseId = null)
     {
         return [
-            'title'         => 'required|string|max:255',
-            'slug'          => 'required|string|max:255|unique:lessons,slug' . ($courseId ? ",$courseId" : ''),
-            'summary'       => 'nullable|string',
+            'title'         => 'required|string|max:200',
+            'slug'          => 'required|string|max:255|unique:courses,slug' . ($courseId ? ",$courseId" : ''),
+            'summary'       => 'required|string',
             'description'   => 'required|string',
             'thumbnail'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'duration'      => 'nullable|integer|min:1',
+            'duration'      => 'required|integer|min:1',
             'status'        => 'required|in:draft,published',
         ];
     }
@@ -106,7 +112,10 @@ class CourseController extends Controller
         $image = $request->file('thumbnail');
         $safeTitle = Str::slug($title);
         $extension = $image->getClientOriginalExtension();
-        $filePath = $image->storeAs('courses', $safeTitle . '.' . $extension, 'public' );
+        $fileName = $safeTitle . '.' . $extension;
+        $filePath = $image->storeAs('courses', $fileName, 'public');
+
+        /*$filePath = $image->storeAs('courses', $safeTitle . '.' . time(). $extension, 'public' );*/
 
         return 'storage/' . $filePath;
     }
