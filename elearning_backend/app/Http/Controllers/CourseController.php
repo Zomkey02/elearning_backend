@@ -41,7 +41,8 @@ class CourseController extends Controller
 
     public function show($id)
     {
-        $course = Course::find($id);
+
+        $course = Course::with('lessons')->findOrFail($id);
 
         if (!$course) {
             return response()->json(['message' => 'Course not found'], status: 404);
