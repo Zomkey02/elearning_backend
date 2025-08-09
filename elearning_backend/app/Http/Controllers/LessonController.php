@@ -84,7 +84,7 @@ class LessonController extends Controller
 
         $lesson->update($validated);
 
-        return response()->json(['message' => 'Update successful', 'course' => $lesson], 200);
+        return response()->json(['message' => 'Update successful', 'lesson' => $lesson], 200);
 
     }
 
