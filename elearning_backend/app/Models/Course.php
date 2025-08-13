@@ -18,7 +18,8 @@ class Course extends Model
         'duration',
         'views',
         'author_id',
-        'status'
+        'status',
+        'category',
     ];
 
     public function lessons() {

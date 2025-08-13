@@ -101,6 +101,7 @@ class CourseController extends Controller
             'thumbnail'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'duration'      => 'required|integer|min:1',
             'status'        => 'required|in:draft,published',
+            'category'      => 'required|in:investing-basics,passive-investing-strategies,personal-finance'
         ];
     }
 
