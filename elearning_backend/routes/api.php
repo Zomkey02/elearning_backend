@@ -35,8 +35,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/course', 'store');
         Route::post('/course/update/{courseId}', 'update');
         Route::delete('/course/delete/{courseId}', 'delete');
-
-
     });
 
     Route::controller( LessonController::class )->group (function(){
