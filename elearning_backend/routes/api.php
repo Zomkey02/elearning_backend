@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\UpdateUserProfileController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\LessonProgressController;
 
 // Public routes
 Route::post('/register', RegisterController::class);
@@ -41,6 +42,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/course/{courseId}/lesson', 'store');
         Route::post('/course/{courseId}/lesson/update/{lessonId}', 'update');
         Route::delete('/course/{courseId}/lesson/delete/{lessonId}', 'delete');
+    });
+
+    Route::controller( LessonProgressController::class )->group (function(){
+        Route::post('/course/{courseId}/lesson/{lessonId}/complete', 'markCompleted');
+        Route::get('/course/{courseId}/progress', 'getCourseProgress');
     });
 
 });
