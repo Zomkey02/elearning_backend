@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class LessonController extends Controller
 {
-    /*show all lessons in a course*/
+    
     public function index(Request $request)
     {
         $lessons = Lesson::all();
@@ -22,13 +22,15 @@ class LessonController extends Controller
         if(!Gate::allows('manage-all')) {
             return response()->json(['message' => 'Not authorized'], 403);
         }
-        // Make sure lesson has a course
+        
         $course = \App\Models\Course::find($courseId);
         if (!$course) {
             return response()->json(['message' => 'Course not found'], 404);
         }
 
-        // Validation and creation logic
+        $request->merge(['slug' => Str::slug($request->input('title', ''))]);
+
+        
         $validated = $request->validate($this->rules());
         $thumbnailPath = $this->handleThumbnailUpload($request, $validated['title']);
         if ($thumbnailPath) {
@@ -45,17 +47,17 @@ class LessonController extends Controller
         return response()->json(['lesson' => $lesson], status: 201);
         
     }
-    /* Show specific lesson */
-    public function show(Request $request, $courseId, $lessonId)
+   
+    public function show(Request $request, $courseId, $id)
     {
-        //$lesson = Lesson::find($id);
-        $lesson = Lesson::where('id', $lessonId)->where('course_id', $courseId)->first();
+        
+        $lesson = Lesson::where('id', $id)->where('course_id', $courseId)->first();
 
         if (!$lesson) {
             return response()->json(['message' => 'Lesson not found'], status: 404);
         }
         
-        if ($lesson->status !== 'published' && $request->user()->role !== 'admin') {
+        if ($lesson->status !== 'published' && !Gate::allows('manage-all')) {
             return response()->json(['message' => 'Not authorized to view this lesson'], 403);
         }
         
@@ -63,22 +65,29 @@ class LessonController extends Controller
         
     }
 
-    public function update(Request $request, $courseId, $lessonId)
+    public function update(Request $request, $courseId, $id)
     {
         if(!Gate::allows('manage-all')) {
             return response()->json(['message' => 'Not authorized'], 403);
         }
-        // Make sure lesson has a course
-        $course = \App\Models\Course::findOrFail($courseId);
 
-        $lesson = Lesson::where('id', $lessonId)
+        $lesson = Lesson::where('id', $id)
                     ->where('course_id', $courseId)
-                    ->firstOrFail();
+                    ->first();
 
-        $validated = $request->validate($this->rules($lesson->id));
+        if (!$lesson) {
+            return response()->json(['message' => 'Lesson not found'], status: 404);
+        }
+        
+        $request->merge(['slug' => Str::slug($request->input('title', ''))]);
+
+        $validated = $request->validate($this->rules($lesson->id, $courseId));
 
         $thumbnailPath = $this->handleThumbnailUpload($request, $validated['title']);
         if ($thumbnailPath) { 
+            if ($lesson->thumbnail && Storage::disk('public')->exists(str_replace('storage/','',$lesson->thumbnail))) {
+                Storage::disk('public')->delete(str_replace('storage/','',$lesson->thumbnail));
+            }
             $validated['thumbnail'] = $thumbnailPath;
         }
 
@@ -89,17 +98,19 @@ class LessonController extends Controller
     }
 
 
-    public function delete(Request $request, $courseId, $lessonId)
+    public function delete(Request $request, $courseId, $id)
     {
         if (!Gate::allows('manage-all')) {
         return response()->json(['message' => 'Not authorized'], 403);
         }
-        // Make sure lesson has a course
-        $course = \App\Models\Course::findOrFail($courseId);
 
-        $lesson = Lesson::where('id', $lessonId)
+        $lesson = Lesson::where('id', $id)
                     ->where('course_id', $courseId)
-                    ->firstOrFail();
+                    ->first();
+
+        if (!$lesson) {
+            return response()->json(['message' => 'Lesson not found'], status: 404);
+        }
 
         if ($lesson->thumbnail && Storage::disk('public')->exists(str_replace('storage/', '', $lesson->thumbnail))) 
             {Storage::disk('public')->delete(str_replace('storage/', '', $lesson->thumbnail));
@@ -112,20 +123,21 @@ class LessonController extends Controller
 
     }
 
-    protected function rules($lessonId = null)
+    protected function rules($id = null)
     {
         return [
             'title'         => 'required|string|max:255',
-            'slug'          => 'required|string|max:255|unique:lessons,slug' . ($lessonId ? ",$lessonId" : ''),
+            'slug'          => 'required|string|max:255|unique:lessons,slug,' . ($id),
             'summary'       => 'nullable|string',
             'content'       => 'required|string',
             'thumbnail'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'duration'      => 'nullable|integer|min:1',
+            'duration'      => 'required|integer|min:1',
             'level'         => 'required|in:beginner,intermediate,advanced',
             'status'        => 'required|in:draft,published',
             'layout_type'   => 'required|in:standard,video-focused,image-left,interactive',
         ];
     }
+
     private function handleThumbnailUpload(Request $request, string $title): ?string
     {
         if (!$request->hasFile('thumbnail')) {
@@ -135,10 +147,9 @@ class LessonController extends Controller
         $image = $request->file('thumbnail');
         $safeTitle = Str::slug($title);
         $extension = $image->getClientOriginalExtension();
-        $filePath = $image->storeAs('lessons', $safeTitle . '.' . $extension, 'public');
+        $fileName = $safeTitle . '.' . time() . '.'  . $extension;
+        $filePath = $image->storeAs('lessons', $fileName, 'public');
 
         return 'storage/' . $filePath;
     }
-
-    
 }
