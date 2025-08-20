@@ -23,4 +23,5 @@ class LessonProgress extends Model
     }
 
 
+
 }

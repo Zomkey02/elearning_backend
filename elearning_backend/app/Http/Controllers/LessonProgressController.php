@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use Illuminate\Http\Request;
@@ -37,9 +38,19 @@ class LessonProgressController extends Controller
             ], 200);
     }
 
+    public function getLessonProgress(Request $request, $courseId, $lessonId) {
+        $progress = LessonProgress::where('user_id', $request->user()->id)
+            ->where('lesson_id', $lessonId)
+            ->first();
+
+        return response()->json([
+            'completed' => $progress ? (bool)$progress->completed : false
+        ]);
+    }
+
     public function getCourseProgress(Request $request, $courseId) {
 
-        $total = \App\Models\Lesson::where('course_id', $courseId)
+        $total = Lesson::where('course_id', $courseId)
             ->where('status', 'published')
             ->count();
         
@@ -57,4 +68,33 @@ class LessonProgressController extends Controller
         ], 200);
     }
 
+    public function getAllCourseProgress(Request $request) {
+
+        $userId = $request->user()->id;
+
+        $progressEntries = LessonProgress::with('lesson.course')
+            ->where('user_id', $userId)
+            ->get();
+        
+        $grouped = $progressEntries->groupBy(fn($p) => $p->lesson->course_id);
+
+        $result = [];
+
+        foreach ($grouped as $courseId => $lessons) {
+            $total = Lesson::where('course_id', $courseId)
+                ->where('status', 'published')
+                ->count();
+            
+            $completed = $lessons->where('completed', true)->count();
+            $courseTitle = $lessons->first()->lesson->course->title ?? 'Unknown';
+
+            $result[] = [
+                'courseId' => $courseId,
+                'courseTitle' => $courseTitle,
+                'completedLessons' => $completed,
+                'totalLessons' => $total,
+            ];
+        }
+        return response()->json($result, 200);
+    }
 }

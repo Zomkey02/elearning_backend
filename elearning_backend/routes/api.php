@@ -32,6 +32,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/update', UpdateUserProfileController::class);
     Route::delete('/delete', DeleteUserController::class);
 
+    Route::controller( LessonProgressController::class )->group (function(){
+        Route::get('/user/course/progress', 'getAllCourseProgress');
+
+        Route::get('/user/progress/{courseId}', 'getCourseProgress')
+            ->whereNumber('courseId'); 
+        
+
+        Route::post('/course/{courseId}/lesson/{lessonId}/complete', 'markCompleted')
+            ->whereNumber('courseId') ->whereNumber('lessonId'); 
+
+        Route::get('/course/{courseId}/lesson/{lessonId}/complete', 'getLessonProgress')
+            ->whereNumber('courseId') ->whereNumber('lessonId'); 
+    });
+
     Route::controller( CourseController::class )->group ( function(){
         Route::post('/course', 'store');
         Route::post('/course/update/{courseId}', 'update');
@@ -44,9 +58,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/course/{courseId}/lesson/delete/{lessonId}', 'delete');
     });
 
-    Route::controller( LessonProgressController::class )->group (function(){
-        Route::post('/course/{courseId}/lesson/{lessonId}/complete', 'markCompleted');
-        Route::get('/course/{courseId}/progress', 'getCourseProgress');
-    });
+    
 
 });
