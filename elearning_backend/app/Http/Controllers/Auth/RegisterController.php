@@ -10,16 +10,24 @@ use Illuminate\Http\Request;
 //use Laravel\Fortify\Rules\Password as PasswordRule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash, Auth;
+use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
     public function __invoke(Request $request) 
     {
-        $request->validate([
-            'username' => ['required', 'string', 'min:2', 'max:255', Rule::unique(User::class)],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
-        ]);
+        try {
+            $request->validate([
+                'username' => ['required', 'string', 'min:2', 'max:255', Rule::unique(User::class)],
+                'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
+                'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
+        }
+        
 
         $user = User::create([
             'username' => $request->username,

@@ -22,7 +22,7 @@ class LoginController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 422);
         }
 
-        $user = User::where('email', $request->input('email'))->firstOrFail();
+        $user = User::where('email', $request->input('email'))->first();
         
         $token = $user->createToken('authToken')->plainTextToken;
 
